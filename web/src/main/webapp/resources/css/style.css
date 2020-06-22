@@ -1,0 +1,23 @@
+#image-col {
+    width: 15%;
+}
+
+#brand-col, #model-col, #color-col {
+    width: 12%;
+}
+
+#display-size-col {
+    width: 19%;
+}
+
+#price-col, #quantity-col, #action-col {
+    width: 10%;
+}
+
+input[id^="item-quantity-"] {
+    width: 100%;
+}
+
+div[id^="item-quantity-error-"] {
+    color: red;
+}

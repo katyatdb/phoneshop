@@ -1,25 +1,22 @@
 package com.es.core.dao.phone;
 
-import com.es.core.model.phone.Color;
+import com.es.core.dao.AbstractJdbcDao;
+import com.es.core.model.color.Color;
 import com.es.core.model.phone.Phone;
-import org.springframework.dao.DataAccessException;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.BeanPropertySqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import javax.annotation.Resource;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.stream.Collectors;
 
-@Component
-public class JdbcPhoneDao implements PhoneDao {
+@Repository
+public class JdbcPhoneDao extends AbstractJdbcDao<Phone> implements PhoneDao {
     private static final String FIND_PHONE_BY_ID = "select * from phones where id = ?";
     private static final String FIND_PHONE_COLORS = "select * from colors " +
             "join phone2color on colors.id = phone2color.colorId " +
@@ -41,89 +38,56 @@ public class JdbcPhoneDao implements PhoneDao {
             "batteryCapacityMah = :batteryCapacityMah, talkTimeHours = :talkTimeHours, " +
             "standByTimeHours = :standByTimeHours, bluetooth = :bluetooth, positioning = :positioning, " +
             "imageUrl = :imageUrl, description = :description where id = :id";
-    private static final String FIND_ALL_PHONES = "select * from phones offset ? limit ?";
+    private static final String FIND_ALL_PHONES = "select * from phones " +
+            "join stocks on phones.id = stocks.phoneId " +
+            "where stocks.stock > 0 and phones.price is not null offset ? limit ?";
     private static final String INSERT_PHONE_COLORS = "insert into phone2color (phoneId, colorId) values (?, ?)";
     private static final String DELETE_PHONE_COLORS = "delete from phone2color where phoneId = ?";
-    private static final String FIND_ALL_COLOR_IDS = "select id from colors";
-    private static final String FIND_COLOR_BY_ID = "select * from colors where id = ?";
-    private static final String INSERT_COLOR = "insert into colors (id, code) values (?, ?)";
 
     @Resource
     private JdbcTemplate jdbcTemplate;
-    @Resource
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
-    public Optional<Phone> get(final Long key) {
-        try {
-            Phone phone = jdbcTemplate.queryForObject(FIND_PHONE_BY_ID, new PhoneRowMapper(), key);
-            return Optional.of(phone);
-        } catch (DataAccessException e) {
-            return Optional.empty();
-        }
+    @Override
+    public Optional<Phone> get(Long key) {
+        return super.get(FIND_PHONE_BY_ID, new PhoneRowMapper(), key);
     }
 
+    @Override
     public void save(final Phone phone) {
-        if (phone.getId() == null) {
-            insert(phone);
+        Optional<Phone> phoneOptional = get(phone.getId());
+
+        if (phoneOptional.isPresent()) {
+            update(phone);
         } else {
-            try {
-                jdbcTemplate.queryForObject(FIND_PHONE_BY_ID, new PhoneRowMapper(), phone.getId());
-                update(phone);
-            } catch (EmptyResultDataAccessException e) {
-                insert(phone);
-            }
+            insert(phone);
         }
     }
 
     private void insert(Phone phone) {
-        SqlParameterSource namedParameters = new BeanPropertySqlParameterSource(phone);
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        namedParameterJdbcTemplate.update(INSERT_PHONE, namedParameters, keyHolder);
+        Long newId = (Long) super.save(INSERT_PHONE, new BeanPropertySqlParameterSource(phone),
+                new GeneratedKeyHolder());
 
         if (phone.getId() == null) {
-            phone.setId((Long) keyHolder.getKey());
+            phone.setId(newId);
         }
-
-        insertPhoneColors(phone.getId(), phone.getColors());
     }
 
     private void update(Phone phone) {
-        SqlParameterSource namedParameters = new BeanPropertySqlParameterSource(phone);
-        namedParameterJdbcTemplate.update(UPDATE_PHONE, namedParameters);
-        deleteColors(phone.getId());
-        insertPhoneColors(phone.getId(), phone.getColors());
+        super.save(UPDATE_PHONE, new BeanPropertySqlParameterSource(phone));
     }
 
-    private void insertPhoneColors(Long phoneId, Set<Color> colors) {
-        List<Object[]> batchPhoneColors = new ArrayList<>();
+    @Override
+    public void updatePhoneColors(Long phoneId, Set<Color> colors) {
+        super.delete(DELETE_PHONE_COLORS, phoneId);
 
-        for (Color color : colors) {
-            Object[] phoneColorValues = new Object[]{phoneId, color.getId()};
-            batchPhoneColors.add(phoneColorValues);
-        }
+        List<Object[]> batchPhoneColors = colors.stream()
+                .map(color -> new Object[]{phoneId, color.getId()})
+                .collect(Collectors.toList());
 
-        insertColors(colors);
         jdbcTemplate.batchUpdate(INSERT_PHONE_COLORS, batchPhoneColors);
     }
 
-    private void insertColors(Set<Color> colors) {
-        List<Object[]> batchColors = new ArrayList<>();
-        List<Long> colorIds = jdbcTemplate.queryForList(FIND_ALL_COLOR_IDS, Long.class);
-
-        for (Color color : colors) {
-            if (!colorIds.contains(color.getId())) {
-                Object[] colorValues = new Object[]{color.getId(), color.getCode()};
-                batchColors.add(colorValues);
-            }
-        }
-
-        jdbcTemplate.batchUpdate(INSERT_COLOR, batchColors);
-    }
-
-    private void deleteColors(Long phoneId) {
-        jdbcTemplate.update(DELETE_PHONE_COLORS, phoneId);
-    }
-
+    @Override
     public List<Phone> findAll(int offset, int limit) {
         if (offset < 0 || limit < 0) {
             throw new IllegalArgumentException();
@@ -132,7 +96,45 @@ public class JdbcPhoneDao implements PhoneDao {
         return jdbcTemplate.query(FIND_ALL_PHONES, new PhoneRowMapper(), offset, limit);
     }
 
-    private final class PhoneRowMapper extends BeanPropertyRowMapper<Phone> {
+    @Override
+    public List<Phone> findAll(String query, int offset, int limit, String sortBy, String orderBy) {
+        if (offset < 0 || limit < 0 || sortBy == null || orderBy == null) {
+            throw new IllegalArgumentException();
+        }
+
+        String sqlQuery = createSqlQueryFindPhones(query, offset, limit, sortBy, orderBy);
+        return jdbcTemplate.query(sqlQuery, new PhoneRowMapper());
+    }
+
+    @Override
+    public int countPhones(String query) {
+        String sqlQuery = createSqlQueryCountPhones(query);
+        return jdbcTemplate.queryForObject(sqlQuery, Integer.class);
+    }
+
+    private String createSqlQueryFindPhones(String query, int offset, int limit, String sortBy, String orderBy) {
+        if (query != null && !query.isEmpty()) {
+            return String.format("select * from phones as p join stocks as s on p.id = s.phoneId where s.stock > 0 " +
+                    "and p.price is not null and (lower(p.brand) like '%%%1$s%%' or lower(p.model) like '%%%1$s%%') " +
+                    "order by lower(%2$s) %3$s offset %4$d limit %5$d", query, sortBy, orderBy, offset, limit);
+        }
+
+        return String.format("select * from phones as p join stocks as s on p.id = s.phoneId where s.stock > 0 " +
+                "and p.price is not null order by lower(%s) %s offset %d limit %d", sortBy, orderBy, offset, limit);
+    }
+
+    private String createSqlQueryCountPhones(String query) {
+        if (query != null && !query.isEmpty()) {
+            return String.format("select count(*) from phones as p join stocks as s on p.id = s.phoneId " +
+                    "where s.stock > 0 and p.price is not null and (lower(p.brand) like '%%%1$s%%' " +
+                    "or lower(p.model) like '%%%1$s%%')", query);
+        }
+
+        return "select count(*) from phones as p join stocks as s on p.id = s.phoneId " +
+                        "where s.stock > 0 and p.price is not null";
+    }
+
+    private class PhoneRowMapper extends BeanPropertyRowMapper<Phone> {
 
         public PhoneRowMapper() {
             super(Phone.class);
