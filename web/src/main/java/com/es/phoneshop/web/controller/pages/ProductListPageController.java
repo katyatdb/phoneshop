@@ -21,6 +21,10 @@ public class ProductListPageController {
     @Resource
     private PhoneService phoneService;
 
+    void setPhonesPerPage(int phonesPerPage) {
+        this.phonesPerPage = phonesPerPage;
+    }
+
     @GetMapping
     public String showProductList(Model model, @RequestParam(name = "page", defaultValue = "1") int page,
                                   @RequestParam(name = "query", required = false) String query,

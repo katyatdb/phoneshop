@@ -3,12 +3,20 @@ package com.es.phoneshop.web.model;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
-public class RequestCartItem {
+public class CartItemForm {
     @NotNull
     private Long id;
     @NotNull
     @Min(1)
     private Long quantity;
+
+    public CartItemForm() {
+    }
+
+    public CartItemForm(Long id, Long quantity) {
+        this.id = id;
+        this.quantity = quantity;
+    }
 
     public Long getId() {
         return id;

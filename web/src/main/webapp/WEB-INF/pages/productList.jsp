@@ -2,7 +2,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <tags:master pageTitle="Product List">
     <div class="container mt-5">
@@ -54,35 +53,45 @@
                 <th id="action-col" scope="col">Action</th>
             </tr>
             </thead>
+            <tbody>
             <spring:message code="phoneImageUrl" var="imageUrl"/>
             <c:forEach var="phone" items="${paginationResult.pageItems}">
                 <tr>
                     <td>
-                        <img src="${imageUrl}${phone.imageUrl}">
+                        <a href="<c:url value="/productDetails/${phone.id}"/>">
+                            <img src="${imageUrl}${phone.imageUrl}">
+                        </a>
                     </td>
                     <td>${phone.brand}</td>
-                    <td>${phone.model}</td>
                     <td>
+                        <a href="<c:url value="/productDetails/${phone.id}"/>">
+                                ${phone.model}
+                        </a>
+                    </td>
+                    <td>
+                        <c:if test="${empty phone.colors}">&mdash;</c:if>
+
                         <c:forEach var="color" items="${phone.colors}" varStatus="index">
-                            ${color.code}
-                            <c:if test="${not index.last}">, </c:if>
+                            ${color.code}<c:if test="${not index.last}">,</c:if>
                         </c:forEach>
                     </td>
                     <td>${phone.displaySizeInches}"</td>
                     <td>$ ${phone.price}</td>
                     <td>
-                        <input type="text" id="item-quantity-${phone.id}" value="1"/>
-                        <div id="item-quantity-error-${phone.id}"></div>
+                        <input type="text" id="item-quantity-${phone.id}"
+                               class="w-100 form-control text-right" value="1"/>
+                        <div id="item-quantity-error-${phone.id}" class="error text-right"></div>
                     </td>
                     <td>
-                        <button type="button" id="add-to-cart-${phone.id}" class="btn btn-outline-primary">
+                        <button type="button" id="add-to-cart-${phone.id}" class="btn btn-outline-primary pr-2 pl-2">
                             Add to
                         </button>
                     </td>
                 </tr>
             </c:forEach>
+            </tbody>
         </table>
-        <c:if test="${paginationResult.itemsNumber > 0}">
+        <c:if test="${paginationResult.pagesNumber > 1}">
             <tags:pagination currentPage="${not empty param.page ? param.page : 1}"
                              pagesNumber="${paginationResult.pagesNumber}"/>
         </c:if>

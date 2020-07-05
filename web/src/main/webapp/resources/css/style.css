@@ -1,3 +1,13 @@
+#logo {
+    text-decoration: none;
+    color: #000;
+}
+
+#logo:hover {
+    text-decoration: none;
+    color: #000;
+}
+
 #image-col {
     width: 15%;
 }
@@ -7,17 +17,17 @@
 }
 
 #display-size-col {
-    width: 19%;
+    width: 15%;
 }
 
-#price-col, #quantity-col, #action-col {
+#price-col, #action-col {
     width: 10%;
 }
 
-input[id^="item-quantity-"] {
-    width: 100%;
+#quantity-col {
+    width: 15%;
 }
 
-div[id^="item-quantity-error-"] {
+.error {
     color: red;
 }

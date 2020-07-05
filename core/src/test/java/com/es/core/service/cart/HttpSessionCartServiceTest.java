@@ -17,13 +17,9 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -146,6 +142,19 @@ public class HttpSessionCartServiceTest {
     }
 
     @Test
+    public void testGetOutOfStockPhoneIds() {
+        Map<Long, Long> idQuantityMap = new HashMap<>();
+        idQuantityMap.put(1L, 20L);
+        idQuantityMap.put(2L, 3L);
+        cartItems.add(cartItem2);
+
+        OutOfStockException thrown = assertThrows(OutOfStockException.class,
+                () -> cartService.update(idQuantityMap));
+
+        assertEquals(Collections.singletonList(1L), thrown.getProductIds());
+    }
+
+    @Test
     public void testUpdateCartItemSetZero() {
         Map<Long, Long> idQuantityMap = new HashMap<>();
         idQuantityMap.put(1L, 0L);
@@ -168,5 +177,21 @@ public class HttpSessionCartServiceTest {
 
         // 1 * 200 + 400 * 3
         assertEquals(new BigDecimal(1400), cart.getTotalPrice());
+    }
+
+    @Test
+    public void testRecalculateTotalPriceOutOfStock() {
+        Map<Long, Long> idQuantityMap = new HashMap<>();
+        idQuantityMap.put(1L, 20L);
+        idQuantityMap.put(2L, 2L);
+        cartItems.add(cartItem2);
+
+        try {
+            cartService.update(idQuantityMap);
+        } catch (OutOfStockException e) {
+
+            // 1 * 200 + 400 * 2
+            assertEquals(new BigDecimal(1000), cart.getTotalPrice());
+        }
     }
 }

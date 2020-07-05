@@ -13,11 +13,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @ControllerAdvice
 public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
-    @ExceptionHandler(ProductNotFoundException.class)
-    public ResponseEntity<String> handleProductNotFoundException() {
-        return new ResponseEntity<>("Product not found", HttpStatus.BAD_REQUEST);
-    }
-
     @ExceptionHandler(OutOfStockException.class)
     public ResponseEntity<String> handleOutOfStockException() {
         return new ResponseEntity<>("Out of stock", HttpStatus.BAD_REQUEST);
@@ -26,6 +21,11 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     @ExceptionHandler(InvalidFormatException.class)
     public ResponseEntity<String> handleInvalidFormatException() {
         return new ResponseEntity<>("Invalid format", HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<String> handleProductNotFoundException() {
+        return new ResponseEntity<>("Product not found", HttpStatus.BAD_REQUEST);
     }
 
     @Override

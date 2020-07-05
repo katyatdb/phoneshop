@@ -1,7 +1,7 @@
-<%@taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<%@taglib prefix="tags" tagdir="/WEB-INF/tags" %>
-<%@attribute name="currentPage" required="true" %>
-<%@attribute name="pagesNumber" required="true" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
+<%@ attribute name="currentPage" required="true" %>
+<%@ attribute name="pagesNumber" required="true" %>
 
 <nav aria-label="Page navigation">
     <ul class="pagination justify-content-end">
@@ -29,7 +29,6 @@
             </c:when>
             <c:when test="${pagesNumber gt 9 && currentPage le 4}">
                 <c:forEach var="i" begin="1" end="9">
-                    <%--                    <li class="page-item"><tags:pageUrl page="${i}" value="${i}" color="${i eq currentPage ? \"red\" : \"black\"}"/></li>--%>
                     <li class="page-item ${i eq currentPage ? "active" : ""}">
                         <a class="page-link" href="<tags:pageUrl page="${i}"/>">${i}</a>
                     </li>
@@ -37,8 +36,6 @@
             </c:when>
             <c:when test="${pagesNumber gt 9 && pagesNumber - currentPage le 4}">
                 <c:forEach var="i" begin="${pagesNumber - 9 + 1}" end="${pagesNumber}">
-                    <%--                    <li class="page-item"><tags:pageUrl page="${i}" value="${i}" color="${i eq currentPage ? \"red\" : \"black\"}"/></li>--%>
-
                     <li class="page-item ${i eq currentPage ? "active" : ""}">
                         <a class="page-link" href="<tags:pageUrl page="${i}"/>">${i}</a>
                     </li>
@@ -46,8 +43,6 @@
             </c:when>
             <c:otherwise>
                 <c:forEach var="i" begin="${currentPage - 4}" end="${currentPage + 4}">
-                    <%--                    <li class="page-item"><tags:pageUrl page="${i}" value="${i}" color="${i eq currentPage ? \"red\" : \"black\"}"/></li>--%>
-
                     <li class="page-item ${i eq currentPage ? "active" : ""}">
                         <a class="page-link" href="<tags:pageUrl page="${i}"/>">${i}</a>
                     </li>

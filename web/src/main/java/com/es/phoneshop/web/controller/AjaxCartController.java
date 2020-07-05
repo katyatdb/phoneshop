@@ -1,10 +1,10 @@
 package com.es.phoneshop.web.controller;
 
-import com.es.phoneshop.web.exception.InvalidFormatException;
 import com.es.core.model.cart.Cart;
 import com.es.core.service.cart.CartService;
+import com.es.phoneshop.web.exception.InvalidFormatException;
 import com.es.phoneshop.web.model.CartInfo;
-import com.es.phoneshop.web.model.RequestCartItem;
+import com.es.phoneshop.web.model.CartItemForm;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +27,7 @@ public class AjaxCartController {
 
     @PostMapping
     @ResponseBody
-    public CartInfo addPhone(@RequestBody @Valid RequestCartItem cartItem, BindingResult bindingResult) {
+    public CartInfo addPhone(@RequestBody @Valid CartItemForm cartItem, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) {
             throw new InvalidFormatException();
         }
@@ -37,4 +37,6 @@ public class AjaxCartController {
 
         return new CartInfo(cart.getCartItems().size(), cart.getTotalPrice());
     }
+
+
 }

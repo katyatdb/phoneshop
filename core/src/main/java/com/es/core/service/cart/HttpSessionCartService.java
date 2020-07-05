@@ -11,8 +11,7 @@ import com.es.core.model.stock.Stock;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class HttpSessionCartService implements CartService {
@@ -47,6 +46,8 @@ public class HttpSessionCartService implements CartService {
 
     @Override
     public void update(Map<Long, Long> items) {
+        List<Long> outOfStockPhoneIds = new ArrayList<>();
+
         for (Map.Entry<Long, Long> entry : items.entrySet()) {
             Long phoneId = entry.getKey();
             Long quantity = entry.getValue();
@@ -54,10 +55,22 @@ public class HttpSessionCartService implements CartService {
             phoneDao.get(phoneId).orElseThrow(ProductNotFoundException::new);
             Optional<CartItem> cartItemOptional = findCartItem(phoneId);
 
-            cartItemOptional.ifPresent(cartItem -> updateCartItem(cartItem, quantity));
+            if (cartItemOptional.isPresent()) {
+                CartItem cartItem = cartItemOptional.get();
+
+                try {
+                    updateCartItem(cartItem, quantity);
+                } catch (OutOfStockException e) {
+                    outOfStockPhoneIds.add(cartItem.getPhone().getId());
+                }
+            }
         }
 
         cartRecalculationService.recalculate(cart);
+
+        if (!outOfStockPhoneIds.isEmpty()) {
+            throw new OutOfStockException(outOfStockPhoneIds);
+        }
     }
 
     private Optional<CartItem> findCartItem(Long phoneId) {
