@@ -3,16 +3,18 @@ package com.es.core.dao.phone;
 import com.es.core.dao.stock.StockDao;
 import com.es.core.model.phone.Phone;
 import com.es.core.model.stock.Stock;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
@@ -27,7 +29,7 @@ public class JdbcProductDaoIntTest {
     @Resource
     private StockDao stockDao;
 
-    @BeforeTransaction
+    @Before
     public void init() {
         Phone phone1 = new Phone();
         phone1.setId(1L);
@@ -204,5 +206,12 @@ public class JdbcProductDaoIntTest {
                 .collect(Collectors.toList());
 
         assertEquals(Arrays.asList(3L, 2L, 1L), ids);
+    }
+
+    @Test
+    public void testCountPhones() {
+        int phonesNumber = phoneDao.countPhones("samsung");
+
+        assertEquals(2, phonesNumber);
     }
 }

@@ -31,3 +31,21 @@
 .error {
     color: red;
 }
+
+.table-custom th, .table-custom td {
+    border-left: 1px solid #dee2e6;
+    border-right: 1px solid #dee2e6;
+}
+
+#empty-cell {
+    border-left: 0;
+}
+
+#total-price-row {
+    border-bottom: 1px solid #dee2e6;;
+}
+
+#additional-info {
+    resize: none !important;
+    height: 7em;
+}

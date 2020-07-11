@@ -52,7 +52,7 @@ public class PhoneServiceImplTest {
 
     @Test
     public void testGetPhoneList() {
-        List<Phone> phones = phoneService.getPhoneList(null, 2, 10, "brand", "asc");
+        phoneService.getPhoneList(null, 2, 10, "brand", "asc");
 
         verify(phoneDao).findAll(null, 10, 10, "brand", "asc");
     }

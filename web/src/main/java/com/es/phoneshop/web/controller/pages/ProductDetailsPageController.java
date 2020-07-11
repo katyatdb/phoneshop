@@ -22,7 +22,7 @@ public class ProductDetailsPageController {
         Optional<Phone> phoneOptional = phoneService.getPhone(id);
 
         if (!phoneOptional.isPresent()) {
-            return "productNotFound";
+            return "pageNotFound";
         }
 
         model.addAttribute("phone", phoneOptional.get());

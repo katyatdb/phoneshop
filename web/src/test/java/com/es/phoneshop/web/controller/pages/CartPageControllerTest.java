@@ -1,6 +1,5 @@
 package com.es.phoneshop.web.controller.pages;
 
-import com.es.core.exception.OutOfStockException;
 import com.es.core.model.cart.Cart;
 import com.es.core.model.cart.CartItem;
 import com.es.core.model.phone.Phone;
@@ -18,10 +17,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.servlet.view.InternalResourceView;
 
 import java.util.ArrayList;
-import java.util.Collections;
 
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
@@ -84,21 +81,6 @@ public class CartPageControllerTest {
                 .andExpect(model().attributeExists("cartItemListForm"))
                 .andExpect(model().attribute("cart", cart))
                 .andExpect(view().name("redirect:/cart"));
-    }
-
-    @Test
-    public void testUpdateCartOutOfStock() throws Exception {
-        doThrow(new OutOfStockException(Collections.singletonList(1L)))
-                .when(cartService).update(anyMap());
-
-        mockMvc.perform(put(cartUrl)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(cartItemsFormJson))
-                .andExpect(model().attributeExists("cartItemListForm"))
-                .andExpect(model().attribute("cart", cart))
-                .andExpect(model().attributeHasFieldErrors("cartItemListForm", "cartItems[0].quantity"))
-                .andExpect(model().attributeHasFieldErrorCode("cartItemListForm", "cartItems[0].quantity", "validation.outOfStock"))
-                .andExpect(view().name("cart"));
     }
 
     @Test

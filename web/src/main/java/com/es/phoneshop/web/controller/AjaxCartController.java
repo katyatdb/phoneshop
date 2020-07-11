@@ -37,6 +37,4 @@ public class AjaxCartController {
 
         return new CartInfo(cart.getCartItems().size(), cart.getTotalPrice());
     }
-
-
 }

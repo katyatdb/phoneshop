@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <tags:master pageTitle="Product List">
     <div class="container mt-5">
@@ -17,7 +18,7 @@
             </div>
         </div>
         <table class="table table-bordered">
-            <thead>
+            <thead class="thead-light">
             <tr>
                 <th id="image-col" scope="col">Image</th>
                 <th id="brand-col" scope="col">
@@ -76,7 +77,9 @@
                         </c:forEach>
                     </td>
                     <td>${phone.displaySizeInches}"</td>
-                    <td>$ ${phone.price}</td>
+                    <td>
+                        <fmt:formatNumber type="currency" value="${phone.price}" currencySymbol="$"/>
+                    </td>
                     <td>
                         <input type="text" id="item-quantity-${phone.id}"
                                class="w-100 form-control text-right" value="1"/>

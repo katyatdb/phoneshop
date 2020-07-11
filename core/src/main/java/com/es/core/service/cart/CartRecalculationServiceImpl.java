@@ -1,12 +1,16 @@
 package com.es.core.service.cart;
 
 import com.es.core.model.cart.Cart;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 
 @Service
 public class CartRecalculationServiceImpl implements CartRecalculationService {
+    @Value("${delivery.price}")
+    private BigDecimal deliveryPrice;
+
     @Override
     public void recalculate(Cart cart) {
         BigDecimal totalPrice = cart.getCartItems().stream()
@@ -14,5 +18,10 @@ public class CartRecalculationServiceImpl implements CartRecalculationService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         cart.setTotalPrice(totalPrice);
+    }
+
+    @Override
+    public BigDecimal getDeliveryPrice() {
+        return deliveryPrice;
     }
 }

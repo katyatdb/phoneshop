@@ -5,15 +5,10 @@ import java.util.List;
 
 public class Order {
     private Long id;
+    private String secureId;
     private List<OrderItem> orderItems;
-    /**
-     * A sum of order item prices;
-     */
     private BigDecimal subtotal;
     private BigDecimal deliveryPrice;
-    /**
-     * <code>subtotal</code> + <code>deliveryPrice</code>
-     */
     private BigDecimal totalPrice;
 
     private String firstName;
@@ -23,12 +18,22 @@ public class Order {
 
     private OrderStatus status;
 
+    private String additionalInfo;
+
     public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getSecureId() {
+        return secureId;
+    }
+
+    public void setSecureId(String secureId) {
+        this.secureId = secureId;
     }
 
     public List<OrderItem> getOrderItems() {
@@ -101,5 +106,13 @@ public class Order {
 
     public void setStatus(OrderStatus status) {
         this.status = status;
+    }
+
+    public String getAdditionalInfo() {
+        return additionalInfo;
+    }
+
+    public void setAdditionalInfo(String additionalInfo) {
+        this.additionalInfo = additionalInfo;
     }
 }

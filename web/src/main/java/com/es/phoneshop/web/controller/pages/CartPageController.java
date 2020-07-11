@@ -1,12 +1,13 @@
 package com.es.phoneshop.web.controller.pages;
 
-import com.es.core.exception.OutOfStockException;
 import com.es.core.model.cart.Cart;
 import com.es.core.service.cart.CartService;
 import com.es.phoneshop.web.model.CartItemForm;
 import com.es.phoneshop.web.model.CartItemListForm;
+import com.es.phoneshop.web.validator.CartItemListFormValidator;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -20,6 +21,13 @@ import java.util.stream.Collectors;
 public class CartPageController {
     @Resource
     private CartService cartService;
+    @Resource
+    private CartItemListFormValidator cartItemsValidator;
+
+    @InitBinder("cartItemListForm")
+    protected void initBinder(WebDataBinder binder) {
+        binder.addValidators(cartItemsValidator);
+    }
 
     @ModelAttribute("cartItemListForm")
     public CartItemListForm addCartItems() {
@@ -47,23 +55,9 @@ public class CartPageController {
             return "cart";
         }
 
-        List<CartItemForm> cartItemsForm = cartItems.getCartItems();
-
-        try {
-            Map<Long, Long> newCartItems = cartItemsForm.stream()
-                    .collect(Collectors.toMap(CartItemForm::getId, CartItemForm::getQuantity));
-            cartService.update(newCartItems);
-        } catch (OutOfStockException e) {
-            List<Long> outOfStockPhoneIds = e.getProductIds();
-
-            for (int i = 0; i < cartItemsForm.size(); i++) {
-                if (outOfStockPhoneIds.contains(cartItemsForm.get(i).getId())) {
-                    bindingResult.rejectValue("cartItems[" + i + "].quantity", "validation.outOfStock");
-                }
-            }
-
-            return "cart";
-        }
+        Map<Long, Long> newCartItems = cartItems.getCartItems().stream()
+                .collect(Collectors.toMap(CartItemForm::getId, CartItemForm::getQuantity));
+        cartService.update(newCartItems);
 
         return "redirect:/cart";
     }

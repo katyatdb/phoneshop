@@ -3,11 +3,11 @@ package com.es.core.dao.stock;
 import com.es.core.dao.phone.PhoneDao;
 import com.es.core.model.phone.Phone;
 import com.es.core.model.stock.Stock;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.test.context.transaction.BeforeTransaction;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
@@ -26,7 +26,7 @@ public class JdbcStockDaoIntTest {
     @Resource
     private PhoneDao phoneDao;
 
-    @BeforeTransaction
+    @Before
     public void init() {
         Phone phone = new Phone();
         phone.setId(1L);

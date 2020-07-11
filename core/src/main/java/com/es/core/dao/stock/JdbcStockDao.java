@@ -1,28 +1,30 @@
 package com.es.core.dao.stock;
 
 import com.es.core.dao.AbstractJdbcDao;
-import com.es.core.model.phone.Phone;
+import com.es.core.dao.phone.PhoneDao;
 import com.es.core.model.stock.Stock;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import javax.annotation.Resource;
 import java.util.Optional;
 
 @Repository
 public class JdbcStockDao extends AbstractJdbcDao<Stock> implements StockDao {
-    private static final String FIND_STOCK_BY_PHONE_ID = "select * from stocks where phoneId = ?";
+    private static final String FIND_STOCK_BY_PHONE_ID = "select * from stocks where phoneId = :phoneId";
     private static final String INSERT_STOCK = "insert into stocks (phoneId, stock, reserved) " +
             "values (:phoneId, :stock, :reserved)";
     private static final String UPDATE_STOCK = "update stocks set stock = :stock, reserved = :reserved " +
             "where phoneId = :phoneId";
 
+    @Resource
+    private PhoneDao phoneDao;
+
     @Override
     public Optional<Stock> get(Long phoneId) {
-        return super.get(FIND_STOCK_BY_PHONE_ID, new StockRowMapper(), phoneId);
+        SqlParameterSource sqlParameterSource = new MapSqlParameterSource("phoneId", phoneId);
+        return super.get(FIND_STOCK_BY_PHONE_ID, sqlParameterSource, new StockRowMapper(phoneDao));
     }
 
     @Override
@@ -49,20 +51,5 @@ public class JdbcStockDao extends AbstractJdbcDao<Stock> implements StockDao {
                 .addValue("phoneId", stock.getPhone().getId())
                 .addValue("stock", stock.getStock())
                 .addValue("reserved", stock.getReserved());
-    }
-
-    private static class StockRowMapper extends BeanPropertyRowMapper<Stock> {
-        @Override
-        public Stock mapRow(ResultSet rs, int rowNumber) throws SQLException {
-            Phone phone = new Phone();
-            phone.setId(rs.getLong("phoneId"));
-
-            Stock stock = new Stock();
-            stock.setPhone(phone);
-            stock.setStock(rs.getInt("stock"));
-            stock.setReserved(rs.getInt("reserved"));
-
-            return stock;
-        }
     }
 }

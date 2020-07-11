@@ -17,9 +17,13 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -142,19 +146,6 @@ public class HttpSessionCartServiceTest {
     }
 
     @Test
-    public void testGetOutOfStockPhoneIds() {
-        Map<Long, Long> idQuantityMap = new HashMap<>();
-        idQuantityMap.put(1L, 20L);
-        idQuantityMap.put(2L, 3L);
-        cartItems.add(cartItem2);
-
-        OutOfStockException thrown = assertThrows(OutOfStockException.class,
-                () -> cartService.update(idQuantityMap));
-
-        assertEquals(Collections.singletonList(1L), thrown.getProductIds());
-    }
-
-    @Test
     public void testUpdateCartItemSetZero() {
         Map<Long, Long> idQuantityMap = new HashMap<>();
         idQuantityMap.put(1L, 0L);
@@ -180,18 +171,25 @@ public class HttpSessionCartServiceTest {
     }
 
     @Test
-    public void testRecalculateTotalPriceOutOfStock() {
-        Map<Long, Long> idQuantityMap = new HashMap<>();
-        idQuantityMap.put(1L, 20L);
-        idQuantityMap.put(2L, 2L);
+    public void testClearCart() {
+        cartService.clear();
+
+        assertEquals(0, cartItems.size());
+        assertEquals(BigDecimal.ZERO, cart.getTotalPrice());
+    }
+
+    @Test
+    public void testRemoveOutOfStockPhones() {
+        when(cartItem1.getQuantity()).thenReturn(5L);
+        when(cartItem2.getQuantity()).thenReturn(1L);
         cartItems.add(cartItem2);
+        cart.setCartItems(cartItems);
+        when(cart.getCartItems()).thenCallRealMethod();
 
-        try {
-            cartService.update(idQuantityMap);
-        } catch (OutOfStockException e) {
+        cartService.removeOutOfStockCartItems();
 
-            // 1 * 200 + 400 * 2
-            assertEquals(new BigDecimal(1000), cart.getTotalPrice());
-        }
+        assertEquals(1, cart.getCartItems().size());
+        assertEquals((Long) 2L, cart.getCartItems().get(0).getPhone().getId());
+        assertEquals(new BigDecimal(400), cart.getTotalPrice());
     }
 }

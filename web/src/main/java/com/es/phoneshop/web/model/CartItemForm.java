@@ -7,7 +7,7 @@ public class CartItemForm {
     @NotNull
     private Long id;
     @NotNull
-    @Min(1)
+    @Min(value = 1)
     private Long quantity;
 
     public CartItemForm() {

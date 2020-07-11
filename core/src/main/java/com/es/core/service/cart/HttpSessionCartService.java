@@ -4,6 +4,7 @@ import com.es.core.dao.phone.PhoneDao;
 import com.es.core.dao.stock.StockDao;
 import com.es.core.exception.OutOfStockException;
 import com.es.core.exception.ProductNotFoundException;
+import com.es.core.exception.StockNotFoundException;
 import com.es.core.model.cart.Cart;
 import com.es.core.model.cart.CartItem;
 import com.es.core.model.phone.Phone;
@@ -11,7 +12,10 @@ import com.es.core.model.stock.Stock;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class HttpSessionCartService implements CartService {
@@ -46,8 +50,6 @@ public class HttpSessionCartService implements CartService {
 
     @Override
     public void update(Map<Long, Long> items) {
-        List<Long> outOfStockPhoneIds = new ArrayList<>();
-
         for (Map.Entry<Long, Long> entry : items.entrySet()) {
             Long phoneId = entry.getKey();
             Long quantity = entry.getValue();
@@ -57,20 +59,11 @@ public class HttpSessionCartService implements CartService {
 
             if (cartItemOptional.isPresent()) {
                 CartItem cartItem = cartItemOptional.get();
-
-                try {
-                    updateCartItem(cartItem, quantity);
-                } catch (OutOfStockException e) {
-                    outOfStockPhoneIds.add(cartItem.getPhone().getId());
-                }
+                updateCartItem(cartItem, quantity);
             }
         }
 
         cartRecalculationService.recalculate(cart);
-
-        if (!outOfStockPhoneIds.isEmpty()) {
-            throw new OutOfStockException(outOfStockPhoneIds);
-        }
     }
 
     private Optional<CartItem> findCartItem(Long phoneId) {
@@ -113,5 +106,28 @@ public class HttpSessionCartService implements CartService {
     public void remove(Long phoneId) {
         cart.getCartItems().removeIf(cartItem -> cartItem.getPhone().getId().equals(phoneId));
         cartRecalculationService.recalculate(cart);
+    }
+
+    @Override
+    public void clear() {
+        cart.getCartItems().clear();
+        cartRecalculationService.recalculate(cart);
+    }
+
+    @Override
+    public List<CartItem> removeOutOfStockCartItems() {
+        List<CartItem> outOfStockCartItems = new ArrayList<>();
+
+        for (CartItem cartItem : cart.getCartItems()) {
+            Stock stock = stockDao.get(cartItem.getPhone().getId()).orElseThrow(StockNotFoundException::new);
+            if (stock.getStock() < cartItem.getQuantity()) {
+                outOfStockCartItems.add(cartItem);
+            }
+        }
+
+        cart.getCartItems().removeAll(outOfStockCartItems);
+        cartRecalculationService.recalculate(cart);
+
+        return outOfStockCartItems;
     }
 }

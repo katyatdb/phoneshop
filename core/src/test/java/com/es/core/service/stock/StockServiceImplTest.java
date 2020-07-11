@@ -1,6 +1,5 @@
 package com.es.core.service.stock;
 
-import com.es.core.dao.phone.PhoneDao;
 import com.es.core.dao.stock.StockDao;
 import com.es.core.model.phone.Phone;
 import com.es.core.model.stock.Stock;
@@ -20,15 +19,13 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class StockServiceImplTest {
     @Mock
-    private PhoneDao phoneDao;
-    @Mock
-    private Phone phone;
-    @Mock
     private StockDao stockDao;
     @Mock
     private Stock stock1;
     @Mock
     private Stock stock2;
+    @Mock
+    private Phone phone;
 
     @InjectMocks
     private StockServiceImpl stockService;
@@ -36,7 +33,6 @@ public class StockServiceImplTest {
     @Before
     public void init() {
         when(stockDao.get(1L)).thenReturn(Optional.of(stock1));
-        when(phoneDao.get(1L)).thenReturn(Optional.of(phone));
         when(stock1.getPhone()).thenReturn(phone);
     }
 
