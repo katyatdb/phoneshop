@@ -12,6 +12,8 @@ import org.springframework.jdbc.core.ResultSetExtractor;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +28,6 @@ public class OrderResultSetExtractor implements ResultSetExtractor<List<Order>> 
 
     @Override
     public List<Order> extractData(ResultSet rs) throws SQLException, DataAccessException {
-        List<Order> orders = new ArrayList<>();
         Map<Long, Order> ids = new HashMap<>();
 
         while (rs.next()) {
@@ -46,8 +47,9 @@ public class OrderResultSetExtractor implements ResultSetExtractor<List<Order>> 
                 order.setContactPhoneNo(rs.getString(SqlFields.ORDER_PHONE_NUMBER));
                 order.setStatus(OrderStatus.valueOf(rs.getString(SqlFields.ORDER_STATUS)));
                 order.setAdditionalInfo(rs.getString(SqlFields.ORDER_ADDITIONAL_INFO));
-                order.setOrderItems(new ArrayList<>());
+                order.setDate(rs.getTimestamp(SqlFields.ORDER_DATE));
 
+                order.setOrderItems(new ArrayList<>());
                 ids.put(id, order);
             }
 
@@ -57,10 +59,8 @@ public class OrderResultSetExtractor implements ResultSetExtractor<List<Order>> 
 
             OrderItem orderItem = new OrderItem(phone, order, quantity);
             order.getOrderItems().add(orderItem);
-
-            orders.add(order);
         }
 
-        return orders;
+        return new ArrayList<>(ids.values());
     }
 }

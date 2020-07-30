@@ -146,6 +146,22 @@ public class JdbcOrderDaoIntTest {
     }
 
     @Test
+    public void testUpdateOrder() {
+        Order order = new Order();
+        order.setId(1L);
+        order.setSecureId("order1");
+        order.setFirstName("name");
+        order.setLastName("surname");
+        order.setDeliveryAddress("address");
+        order.setContactPhoneNo("12345");
+        order.setStatus(OrderStatus.REJECTED);
+
+        orderDao.save(order);
+
+        assertEquals(OrderStatus.REJECTED, orderDao.getById(1L).get().getStatus());
+    }
+
+    @Test
     public void testFindAll() {
         List<Order> orders = orderDao.findAll();
 

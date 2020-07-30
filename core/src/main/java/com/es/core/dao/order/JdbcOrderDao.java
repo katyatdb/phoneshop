@@ -22,6 +22,10 @@ public class JdbcOrderDao extends AbstractJdbcDao<Order> implements OrderDao {
             "totalPrice, firstName, lastName, deliveryAddress, contactPhoneNo, status, additionalInfo) " +
             "values (:id, :secureId, :subtotal, :deliveryPrice, :totalPrice, :firstName, :lastName, " +
             ":deliveryAddress, :contactPhoneNo, :status, :additionalInfo)";
+    private static final String UPDATE_ORDER = "update orders set subtotal = :subtotal, " +
+            "deliveryPrice = :deliveryPrice, totalPrice = :totalPrice, firstName = :firstName, lastName = :lastName, " +
+            "deliveryAddress = :deliveryAddress, contactPhoneNo = :contactPhoneNo, status = :status, " +
+            "additionalInfo = :additionalInfo where id = :id";
     private static final String FIND_ALL_ORDERS = "select * from orders join orderItems " +
             "on orders.id = orderItems.orderId";
 
@@ -54,6 +58,21 @@ public class JdbcOrderDao extends AbstractJdbcDao<Order> implements OrderDao {
 
     @Override
     public void save(Order order) {
+        Optional<Order> orderOptional = getById(order.getId());
+
+        if (orderOptional.isPresent()) {
+            update(order);
+        } else {
+            insert(order);
+        }
+    }
+
+    @Override
+    public List<Order> findAll() {
+        return super.findAll(FIND_ALL_ORDERS, new OrderResultSetExtractor(phoneDao));
+    }
+
+    private void insert(Order order) {
         Long newId = (Long) super.save(INSERT_ORDER, getSqlOrderParams(order), new GeneratedKeyHolder());
 
         if (order.getId() == null) {
@@ -61,9 +80,8 @@ public class JdbcOrderDao extends AbstractJdbcDao<Order> implements OrderDao {
         }
     }
 
-    @Override
-    public List<Order> findAll() {
-        return super.findAll(FIND_ALL_ORDERS, new OrderResultSetExtractor(phoneDao));
+    private void update(Order order) {
+        super.save(UPDATE_ORDER, getSqlOrderParams(order));
     }
 
     private SqlParameterSource getSqlOrderParams(Order order) {

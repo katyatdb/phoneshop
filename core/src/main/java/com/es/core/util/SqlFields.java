@@ -12,6 +12,7 @@ public final class SqlFields {
     public static final String ORDER_PHONE_NUMBER = "contactPhoneNo";
     public static final String ORDER_STATUS = "status";
     public static final String ORDER_ADDITIONAL_INFO = "additionalInfo";
+    public static final String ORDER_DATE = "date";
 
     public static final String ORDER_ITEMS_PHONE_ID = "phoneId";
     public static final String ORDER_ITEMS_ORDER_ID = "orderId";

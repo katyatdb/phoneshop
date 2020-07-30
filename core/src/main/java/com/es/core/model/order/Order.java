@@ -1,6 +1,7 @@
 package com.es.core.model.order;
 
 import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.List;
 
 public class Order {
@@ -15,6 +16,7 @@ public class Order {
     private String lastName;
     private String deliveryAddress;
     private String contactPhoneNo;
+    private Timestamp date;
 
     private OrderStatus status;
 
@@ -114,5 +116,13 @@ public class Order {
 
     public void setAdditionalInfo(String additionalInfo) {
         this.additionalInfo = additionalInfo;
+    }
+
+    public Timestamp getDate() {
+        return date;
+    }
+
+    public void setDate(Timestamp date) {
+        this.date = date;
     }
 }

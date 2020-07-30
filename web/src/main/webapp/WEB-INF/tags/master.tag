@@ -1,6 +1,7 @@
 <%@ tag trimDirectiveWhitespaces="true" pageEncoding="utf-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ attribute name="pageTitle" required="true" %>
+<%@ attribute name="isAdminPage" required="false" %>
 
 <html>
 <head>
@@ -24,14 +25,24 @@
                     <a href="<c:url value="/productList"/>" id="logo">Phonify</a>
                 </h1>
             </div>
-            <div class="d-flex flex-column align-items-end">
-                <a href="#" class="mb-3">Login</a>
-                <a href="<c:url value="/cart"/>" class="btn btn-outline-primary">
-                    My cart:
-                    <span id="cart-items-quantity"></span>
-                    <span id="total-price"></span>
-                </a>
-            </div>
+            <c:choose>
+                <c:when test="${isAdminPage eq true}">
+                    <div class="d-flex flex-end mb-3">
+                        <div>admin</div>
+                        <a href="#" class="ml-3">Logout</a>
+                    </div>
+                </c:when>
+                <c:otherwise>
+                    <div class="d-flex flex-column align-items-end">
+                        <a href="#" class="mb-3">Login</a>
+                        <a href="<c:url value="/cart"/>" class="btn btn-outline-primary">
+                            My cart:
+                            <span id="cart-items-quantity"></span>
+                            <span id="total-price"></span>
+                        </a>
+                    </div>
+                </c:otherwise>
+            </c:choose>
         </div>
         <hr>
     </div>

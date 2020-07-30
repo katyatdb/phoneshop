@@ -4,17 +4,17 @@ import com.es.core.dao.order.OrderDao;
 import com.es.core.dao.order.OrderItemDao;
 import com.es.core.exception.OrderNotFoundException;
 import com.es.core.exception.OutOfStockException;
-import com.es.core.exception.StockNotFoundException;
 import com.es.core.model.cart.Cart;
 import com.es.core.model.cart.CartItem;
 import com.es.core.model.order.Order;
 import com.es.core.model.order.OrderItem;
 import com.es.core.model.order.OrderStatus;
-import com.es.core.model.stock.Stock;
 import com.es.core.service.cart.CartRecalculationService;
 import com.es.core.service.cart.CartService;
 import com.es.core.service.stock.StockService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -44,6 +44,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public void placeOrder(Order order) throws OutOfStockException {
         List<CartItem> outOfStockCartItems = cartService.removeOutOfStockCartItems();
 
@@ -58,11 +59,8 @@ public class OrderServiceImpl implements OrderService {
             throw new OutOfStockException(errorMessage);
         }
 
-        for (OrderItem orderItem : order.getOrderItems()) {
-            Stock stock = stockService.getStock(orderItem.getPhone().getId()).orElseThrow(StockNotFoundException::new);
-            stock.setStock(stock.getStock() - orderItem.getQuantity().intValue());
-            stockService.save(stock);
-        }
+        order.getOrderItems().forEach(item -> stockService.changeStockToReserved(item.getPhone().getId(),
+                item.getQuantity().intValue()));
 
         order.setSecureId(UUID.randomUUID().toString());
         orderDao.save(order);
@@ -71,8 +69,35 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public Order getById(Long id) throws OrderNotFoundException {
+        return orderDao.getById(id).orElseThrow(OrderNotFoundException::new);
+    }
+
+    @Override
     public Order getBySecureId(String secureId) throws OrderNotFoundException {
         return orderDao.getBySecureId(secureId).orElseThrow(OrderNotFoundException::new);
+    }
+
+    @Override
+    public List<Order> getOrders() {
+        return orderDao.findAll();
+    }
+
+    @Override
+    @Transactional
+    public void updateOrderStatus(Long id, OrderStatus orderStatus) {
+        Order order = orderDao.getById(id).orElseThrow(OrderNotFoundException::new);
+        order.setStatus(orderStatus);
+
+        if (orderStatus.equals(OrderStatus.DELIVERED)) {
+            order.getOrderItems().forEach(item -> stockService.deleteReserved(item.getPhone().getId(),
+                    item.getQuantity().intValue()));
+        } else if (orderStatus.equals(OrderStatus.REJECTED)) {
+            order.getOrderItems().forEach(item -> stockService.changeReservedToStock(item.getPhone().getId(),
+                    item.getQuantity().intValue()));
+        }
+
+        orderDao.save(order);
     }
 
     private void setOrderFields(Order order, Cart cart) {

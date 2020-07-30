@@ -10,7 +10,6 @@ import com.es.core.model.order.Order;
 import com.es.core.model.order.OrderItem;
 import com.es.core.model.order.OrderStatus;
 import com.es.core.model.phone.Phone;
-import com.es.core.model.stock.Stock;
 import com.es.core.service.cart.CartRecalculationService;
 import com.es.core.service.cart.CartService;
 import com.es.core.service.stock.StockService;
@@ -93,19 +92,14 @@ public class OrderServiceImplTest {
 
     @Test
     public void testPlaceOrder() {
-        Stock stock1 = new Stock(phone1, 5, 1);
-        Stock stock2 = new Stock(phone2, 10, 1);
-        when(stockService.getStock(1L)).thenReturn(Optional.of(stock1));
-        when(stockService.getStock(2L)).thenReturn(Optional.of(stock2));
         when(cartService.removeOutOfStockCartItems()).thenReturn(Collections.emptyList());
 
         orderService.placeOrder(order);
 
-        verify(stockService).save(stock1);
-        verify(stockService).save(stock2);
+        verify(stockService).changeStockToReserved(1L, 2);
+        verify(stockService).changeStockToReserved(2L, 4);
         verify(orderDao).save(order);
-        assertEquals(3, stock1.getStock().intValue());
-        assertEquals(6, stock2.getStock().intValue());
+        verify(orderItemDao).insertOrderItems(order);
     }
 
     @Test(expected = OutOfStockException.class)
@@ -119,10 +113,48 @@ public class OrderServiceImplTest {
     }
 
     @Test
+    public void testGetOrderById() {
+        when(orderDao.getById(1L)).thenReturn(Optional.of(order));
+
+        assertEquals(order, orderService.getById(1L));
+    }
+
+    @Test
     public void testGetOrderBySecureId() {
         when(orderDao.getBySecureId("order1")).thenReturn(Optional.of(order));
 
         assertEquals(order, orderService.getBySecureId("order1"));
+    }
+
+    @Test
+    public void testGetOrders() {
+        when(orderDao.findAll()).thenReturn(Collections.singletonList(order));
+
+        assertEquals(Collections.singletonList(order), orderService.getOrders());
+    }
+
+    @Test
+    public void testSetOrderStatusDelivered() {
+        when(orderDao.getById(1L)).thenReturn(Optional.of(order));
+
+        orderService.updateOrderStatus(1L, OrderStatus.DELIVERED);
+
+        verify(order).setStatus(OrderStatus.DELIVERED);
+        verify(stockService).deleteReserved(1L, 2);
+        verify(stockService).deleteReserved(2L, 4);
+        verify(orderDao).save(order);
+    }
+
+    @Test
+    public void testSetOrderStatusRejected() {
+        when(orderDao.getById(1L)).thenReturn(Optional.of(order));
+
+        orderService.updateOrderStatus(1L, OrderStatus.REJECTED);
+
+        verify(order).setStatus(OrderStatus.REJECTED);
+        verify(stockService).changeReservedToStock(1L, 2);
+        verify(stockService).changeReservedToStock(2L, 4);
+        verify(orderDao).save(order);
     }
 
     @Test(expected = OrderNotFoundException.class)
