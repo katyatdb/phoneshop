@@ -3,7 +3,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
-<tags:master pageTitle="Orders" isAdminPage="true">
+<tags:master pageTitle="Orders">
     <div class="container mt-3 mb-3">
         <h2 class="mt-3">Orders</h2>
 

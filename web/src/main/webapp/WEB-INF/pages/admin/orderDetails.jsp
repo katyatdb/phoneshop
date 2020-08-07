@@ -2,8 +2,10 @@
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 
-<tags:master pageTitle="Order Details" isAdminPage="true">
+
+<tags:master pageTitle="Order Details">
     <div class="container mt-3 mb-3">
         <div class="d-flex justify-content-between mt-3">
             <h4>Order number: ${order.id}</h4>
@@ -89,6 +91,8 @@
         <form method="post">
             <div class="row">
                 <a href="<c:url value="/admin/orders"/>" class="col-2 btn btn-outline-primary ml-3">Back</a>
+                <sec:csrfInput/>
+
                 <button type="submit" name="status" value="DELIVERED" class="col-2 btn btn-outline-primary ml-2">
                     Delivered
                 </button>
