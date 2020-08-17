@@ -1,6 +1,7 @@
 package com.es.core.service.cart;
 
 import com.es.core.model.cart.Cart;
+import com.es.core.model.cart.CartItem;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 

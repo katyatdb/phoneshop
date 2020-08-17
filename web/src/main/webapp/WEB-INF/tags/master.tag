@@ -51,6 +51,7 @@
                         <span id="cart-items-quantity"></span>
                         <span id="total-price"></span>
                     </a>
+                    <a href="<c:url value="/quickOrder"/>" class="mt-3">Quick order</a>
                 </div>
             </sec:authorize>
         </div>

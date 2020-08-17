@@ -2,13 +2,16 @@
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 
 <tags:master pageTitle="Quick Order">
     <div class="container mt-3 mb-3">
         <a href="<c:url value="/productList"/>" class="btn btn-outline-primary mt-3">
             Back to product list
         </a>
+
+        <c:forEach var="message" items="${success}">
+            <div class="success">${message}</div>
+        </c:forEach>
 
         <form:form method="post" modelAttribute="quickCartForm">
             <table class="table table-bordered mt-3 w-25">

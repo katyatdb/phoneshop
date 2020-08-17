@@ -12,6 +12,7 @@ import com.es.core.model.stock.Stock;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,27 +40,13 @@ public class HttpSessionCartService implements CartService {
         Optional<CartItem> cartItemOptional = findCartItem(phoneId);
 
         if (cartItemOptional.isPresent()) {
-            cartItemOptional.get().setPhone(phone);
-            cartItemOptional.get().setQuantity(quantity);
-        }
-
-        if (cartItemOptional.isPresent()) {
             addCartItem(cartItemOptional.get(), quantity);
         } else {
             CartItem cartItem = new CartItem(phone, 0L);
             addCartItem(cartItem, quantity);
         }
 
-        if (cart.getCartItems() != null) {
-            cartRecalculationService.recalculate(cart);
-        }
-    }
-
-    @Override
-    public void addAll(Map<Long, Long> cartItems) {
-        for (Map.Entry<Long, Long> entry : cartItems.entrySet()) {
-            addPhone(entry.getKey(), entry.getValue());
-        }
+        cartRecalculationService.recalculate(cart);
     }
 
     @Override

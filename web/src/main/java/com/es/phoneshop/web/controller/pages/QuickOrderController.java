@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
 
 @Controller
 @RequestMapping("/quickOrder")
@@ -30,10 +32,8 @@ public class QuickOrderController {
     @ModelAttribute
     public QuickCartForm addCartItems() {
         ArrayList<QuickCartItemForm> cartItems = new ArrayList<>();
-
-        for (int i = 0; i < 10; i++) {
-            cartItems.add(new QuickCartItemForm());
-        }
+        IntStream.range(0, 10)
+                .forEach(i -> cartItems.add(new QuickCartItemForm()));
 
         return new QuickCartForm(cartItems);
     }
@@ -46,17 +46,28 @@ public class QuickOrderController {
     @PostMapping
     public String addToCart(@ModelAttribute("quickCartForm") @Valid QuickCartForm cartForm,
                             BindingResult bindingResult, Model model) {
+        List<String> successMessages = new ArrayList<>();
+
         for (int i = 0; i < cartForm.getCartItems().size(); i++) {
-            if (!bindingResult.hasFieldErrors("cartItems[" + i + "].code") &&
-                    !bindingResult.hasFieldErrors("cartItems[" + i + "].quantity")) {
+            if (!hasFieldErrors(bindingResult, i)) {
                 QuickCartItemForm cartItem = cartForm.getCartItems().get(i);
 
                 if (cartItem.getCode() != null && cartItem.getQuantity() != null) {
                     cartService.addPhone(cartItem.getCode(), cartItem.getQuantity());
+                    successMessages.add("Product " + cartItem.getCode() + " added successfully");
+
+                    cartItem.setCode(null);
+                    cartItem.setQuantity(null);
                 }
             }
         }
 
+        model.addAttribute("success", successMessages);
         return "quickOrder";
+    }
+
+    private boolean hasFieldErrors(BindingResult bindingResult, int index) {
+        return bindingResult.hasFieldErrors("cartItems[" + index + "].code") ||
+                bindingResult.hasFieldErrors("cartItems[" + index + "].quantity");
     }
 }

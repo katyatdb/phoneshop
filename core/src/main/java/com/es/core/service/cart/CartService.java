@@ -12,8 +12,6 @@ public interface CartService {
 
     void addPhone(Long phoneId, Long quantity);
 
-    void addAll(Map<Long, Long> cartItems);
-
     void update(Map<Long, Long> items);
 
     void remove(Long phoneId);

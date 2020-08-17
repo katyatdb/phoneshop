@@ -1,6 +1,8 @@
 package com.es.phoneshop.web.validator;
 
+import com.es.core.dao.phone.PhoneDao;
 import com.es.core.dao.stock.StockDao;
+import com.es.core.model.phone.Phone;
 import com.es.core.model.stock.Stock;
 import com.es.phoneshop.web.model.QuickCartForm;
 import com.es.phoneshop.web.model.QuickCartItemForm;
@@ -17,6 +19,8 @@ import java.util.Optional;
 public class QuickCartFormValidator implements Validator {
     @Resource
     private StockDao stockDao;
+    @Resource
+    private PhoneDao phoneDao;
 
     @Override
     public boolean supports(Class<?> aClass) {
@@ -35,8 +39,9 @@ public class QuickCartFormValidator implements Validator {
             }
 
             Optional<Stock> stock = stockDao.get(cartItemForm.getCode());
+            Optional<Phone> phone = phoneDao.get(cartItemForm.getCode());
 
-            if (!stock.isPresent()) {
+            if (!stock.isPresent() || phone.get().getPrice() == null) {
                 errors.rejectValue("cartItems[" + i + "].code", "validation.productNotFound");
             } else if (cartItemForm.getQuantity() > stock.get().getStock()) {
                 errors.rejectValue("cartItems[" + i + "].quantity", "validation.outOfStock");
