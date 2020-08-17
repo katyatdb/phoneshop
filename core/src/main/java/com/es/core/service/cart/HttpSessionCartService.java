@@ -39,13 +39,27 @@ public class HttpSessionCartService implements CartService {
         Optional<CartItem> cartItemOptional = findCartItem(phoneId);
 
         if (cartItemOptional.isPresent()) {
+            cartItemOptional.get().setPhone(phone);
+            cartItemOptional.get().setQuantity(quantity);
+        }
+
+        if (cartItemOptional.isPresent()) {
             addCartItem(cartItemOptional.get(), quantity);
         } else {
             CartItem cartItem = new CartItem(phone, 0L);
             addCartItem(cartItem, quantity);
         }
 
-        cartRecalculationService.recalculate(cart);
+        if (cart.getCartItems() != null) {
+            cartRecalculationService.recalculate(cart);
+        }
+    }
+
+    @Override
+    public void addAll(Map<Long, Long> cartItems) {
+        for (Map.Entry<Long, Long> entry : cartItems.entrySet()) {
+            addPhone(entry.getKey(), entry.getValue());
+        }
     }
 
     @Override
